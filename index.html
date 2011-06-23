@@ -18,7 +18,16 @@
     ${ fullname } is ${ age } years old
     <button data-bind='click: makeOlder'>Make older</button>
 </script>
+<script id='feedTemplate' type='text/html'>
+    <p>${ name } (${ id }) : ${ phone }</p>
+</script>
+
 <span data-bind="text: formatedTime"></span>
+
+<div data-bind='template: { name: "feedTemplate", foreach: viewModel.feed }'> 
+</div>
+
+<span data-bind="text: feedValue"></span>
 
 <script>
   function displayTime(seconds) {
@@ -29,11 +38,12 @@
     firstname: ko.observable("Kent"),
     lastname: ko.observable("Jordan"),
     age: ko.observable(18),
-    refresh: ko.observable(90),
+    refresh: ko.observable(10),
     description: ko.observable("Test"),
+    feed: ko.observableArray([]),
     makeOlder: function() {
       this.age(this.age() + 1);  
-    },
+    }
   };
   viewModel.fullname = ko.dependentObservable(function() {
       return this.firstname()+" "+this.lastname();
@@ -41,14 +51,21 @@
   viewModel.formatedTime = ko.dependentObservable(function() {
       return displayTime(this.refresh());
   }, viewModel);
+  viewModel.feedValue = ko.dependentObservable(function() {
+      return this.feed().length;
+  }, viewModel);
+  
 
   ko.applyBindings(viewModel);
   
   setInterval(function() { 
     viewModel.refresh(viewModel.refresh() - 1);
-    if(viewModel.refresh()==-1)
-      /* Poll and update from a JSON webservice here? */
-      viewModel.refresh(90);
+    if(viewModel.refresh()==-1) {
+      jQuery.get('sample_data.json', function(resp) {
+        viewModel.feed(jQuery.parseJSON(resp));
+      });
+      viewModel.refresh(10);
+    }
   }, 1000);
 </script>
 
