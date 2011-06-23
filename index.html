@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KnockoutJS test page</title>
+  <script src="jquery-1.6.1.min.js"></script>
+  <script src="jquery.tmpl.min.js"></script>
+  <script src="knockout-1.2.1.js"></script>
+  <script src="knockout.mapping-1.0.js"></script>
+</head>
+<body>
+
+<input data-bind="value: firstname" />
+<input data-bind="value: lastname" />
+
+<div data-bind='template: "itemTemplate"'> </div>
+
+<script id='itemTemplate' type='text/html'>
+    ${ fullname } is ${ age } years old
+    <button data-bind='click: makeOlder'>Make older</button>
+</script>
+<span data-bind="text: formatedTime"></span>
+
+<script>
+  function displayTime(seconds) {
+    return Math.floor( seconds / 60) + ":" + ((seconds % 60).toFixed(0) < 10 ? '0' : '') + (seconds % 60).toFixed(0)
+  }
+  
+  var viewModel = {
+    firstname: ko.observable("Kent"),
+    lastname: ko.observable("Jordan"),
+    age: ko.observable(18),
+    refresh: ko.observable(90),
+    description: ko.observable("Test"),
+    makeOlder: function() {
+      this.age(this.age() + 1);  
+    },
+  };
+  viewModel.fullname = ko.dependentObservable(function() {
+      return this.firstname()+" "+this.lastname();
+  }, viewModel);
+  viewModel.formatedTime = ko.dependentObservable(function() {
+      return displayTime(this.refresh());
+  }, viewModel);
+
+  ko.applyBindings(viewModel);
+  
+  setInterval(function() { 
+    viewModel.refresh(viewModel.refresh() - 1);
+    if(viewModel.refresh()==-1)
+      /* Poll and update from a JSON webservice here? */
+      viewModel.refresh(90);
+  }, 1000);
+</script>
+
+</body>
+</html>
